@@ -1,0 +1,37 @@
+# Who owns what. Written by 'lanekeeper divide --confirm' from the proposal
+# you confirmed. Hand-editing this file is expected; it is the authority.
+
+version: 1
+defaults:
+  harness: claude-code
+shared:
+  common:
+    paths:
+    - src/domain/contracts.ts
+lanes:
+  prompt:
+    description: '#3, #1 — from what the tickets say they change.'
+    owner: unsure
+    allow:
+    - src/components/features/IssueCard.tsx
+    - src/components/features/NewIssueModal.tsx
+    - src/components/features/PromptModal.tsx
+    - src/domain/contracts.ts
+    - src/hooks/useKeyboardShortcuts.ts
+    - src/prompts/promptSynthesis.ts
+    - src/providers/storage/storageAdapter.ts
+    - src/services/exportService.ts
+    - src/services/issueService.ts
+    - tests/unit/contracts.test.ts
+    - tests/unit/exportProfiles.test.ts
+    - tests/unit/promptSynthesis.test.ts
+  feat-02:
+    description: '#2 — from what the tickets say they change.'
+    owner: unsure
+    allow:
+    - src/components/features/ClusterCard.tsx
+    - src/domain/contracts.ts
+    - src/prompts/clusteringPrompt.ts
+    - src/providers/llm/llmProvider.ts
+    - src/services/clusterService.ts
+    - tests/unit/clustering.test.ts
