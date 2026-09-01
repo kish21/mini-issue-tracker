@@ -223,3 +223,18 @@ flowchart TD
 - **Security & PII Classification:** Zero credentials or raw secrets stored; issue content is sanitized technical markdown.
 
 ---
+
+## 9. Tickets & Issue Traceability (via `/tickets`)
+
+All milestones and features are mapped to concrete files and published as live GitHub issue tickets:
+
+| Milestone | Ticket ID & Title | Target Modules / Files | Live GitHub Issue |
+| :--- | :--- | :--- | :---: |
+| **M1** | `[FEAT-01]` Issue CRUD, Local Storage & Manual Prompt Synthesis | `src/domain/contracts.ts`, `src/providers/storage/storageAdapter.ts`, `src/services/issueService.ts`, `src/components/features/IssueCard.tsx` | [Issue #1](https://github.com/kish21/mini-issue-tracker/issues/1) |
+| **M2** | `[FEAT-02]` Automated Semantic Clustering Engine with Gemini & Mock Fallback | `src/prompts/clusteringPrompt.ts`, `src/providers/llm/llmProvider.ts`, `src/services/clusterService.ts`, `src/components/features/ClusterCard.tsx` | [Issue #2](https://github.com/kish21/mini-issue-tracker/issues/2) |
+| **M3** | `[FEAT-03]` Status Lifecycle Transitions & Multi-Format Export Profiles | `src/prompts/promptSynthesis.ts`, `src/services/exportService.ts`, `src/hooks/useKeyboardShortcuts.ts`, `src/components/features/PromptModal.tsx` | [Issue #3](https://github.com/kish21/mini-issue-tracker/issues/3) |
+
+- **Templates Auto-Provisioned:** [`.github/ISSUE_TEMPLATE/feature_ticket.md`](https://github.com/kish21/mini-issue-tracker/blob/main/.github/ISSUE_TEMPLATE/feature_ticket.md) and [`.github/PULL_REQUEST_TEMPLATE.md`](https://github.com/kish21/mini-issue-tracker/blob/main/.github/PULL_REQUEST_TEMPLATE.md)
+- **Local Issue Specs:** Stored in [`docs/issues/`](file:///c:/Users/kishore/Downloads/mini-issue-tracker/docs/issues/)
+
+---
