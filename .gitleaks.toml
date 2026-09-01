@@ -1,0 +1,12 @@
+# Gitleaks configuration for secret detection
+title = "Gitleaks Config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlisted example files and test mocks"
+files = [
+  "^\\.env\\.example$",
+  "^tests/mocks/.*"
+]

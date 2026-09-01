@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mini Issue Tracker — Mobile-First Responsive Preview & Theme Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --background: oklch(0.13 0.02 260);
+      --foreground: oklch(0.96 0.01 260);
+      --card: oklch(0.18 0.025 260);
+      --card-foreground: oklch(0.96 0.01 260);
+      --muted: oklch(0.24 0.025 260);
+      --muted-foreground: oklch(0.68 0.03 260);
+      --primary: oklch(0.65 0.22 270);
+      --primary-foreground: oklch(0.99 0.005 265);
+      --accent: oklch(0.65 0.22 270);
+      --accent-foreground: oklch(0.99 0.005 265);
+      --border: oklch(0.26 0.025 260);
+      --ring: oklch(0.65 0.22 270);
+      --radius: 0.6rem;
+      --font-size-base: 15px;
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+
+      --success: oklch(0.72 0.18 150);
+      --warning: oklch(0.78 0.16 80);
+      --danger: oklch(0.68 0.20 25);
+    }
+
+    html.light {
+      --background: oklch(0.98 0.005 260);
+      --foreground: oklch(0.14 0.02 260);
+      --card: oklch(1 0 0);
+      --card-foreground: oklch(0.14 0.02 260);
+      --muted: oklch(0.93 0.01 260);
+      --muted-foreground: oklch(0.42 0.03 260);
+      --primary: oklch(0.55 0.22 270);
+      --primary-foreground: oklch(0.99 0.005 265);
+      --accent: oklch(0.55 0.22 270);
+      --accent-foreground: oklch(0.99 0.005 265);
+      --border: oklch(0.88 0.01 260);
+      --ring: oklch(0.55 0.22 270);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: var(--font-size-base); }
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--background);
+      color: var(--foreground);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 150ms ease, color 150ms ease;
+      overflow-x: hidden;
+    }
+
+    /* Container Queries for Stage Reflow */
+    #ts_stage {
+      container-type: inline-size;
+      width: 100%;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--background);
+      transition: max-width 200ms ease, border-radius 200ms ease, margin 200ms ease;
+    }
+
+    /* Header Layout */
+    .app-header {
+      min-height: 60px;
+      border-bottom: 1px solid var(--border);
+      background: color-mix(in oklch, var(--card) 85%, transparent);
+      backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px;
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+    }
+
+    .brand-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--primary), color-mix(in oklch, var(--primary) 40%, #000));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+      font-size: 14px;
+      box-shadow: 0 0 14px -2px var(--primary);
+      flex-shrink: 0;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* Main Workspace Grid */
+    .main-grid {
+      max-width: 1440px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 16px;
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 20px;
+      flex: 1;
+    }
+
+    /* UI Primitives */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px 14px;
+      min-height: 40px; /* Touch target minimum */
+      border-radius: var(--radius);
+      font-family: var(--font-sans);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      white-space: nowrap;
+      transition: transform 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+    }
+    .btn:active { transform: scale(0.97); }
+
+    .btn-primary {
+      background: var(--primary);
+      color: var(--primary-foreground);
+      box-shadow: 0 2px 8px -1px color-mix(in oklch, var(--primary) 50%, transparent);
+    }
+    .btn-primary:hover {
+      filter: brightness(1.08);
+      box-shadow: 0 0 18px -2px var(--primary);
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      border-color: var(--border);
+      color: var(--foreground);
+    }
+    .btn-secondary:hover {
+      background: var(--muted);
+      border-color: var(--primary);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.2);
+      transition: border-color 150ms ease;
+      word-break: break-word;
+      overflow: hidden;
+    }
+    .card:hover { border-color: color-mix(in oklch, var(--border) 60%, var(--primary)); }
+
+    .card-active {
+      border-color: var(--primary) !important;
+      background: color-mix(in oklch, var(--card) 92%, var(--primary));
+    }
+
+    .tag-badge {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 2px 7px;
+      border-radius: calc(var(--radius) * 0.7);
+      background: var(--muted);
+      color: var(--muted-foreground);
+      border: 1px solid var(--border);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .cluster-pill {
+      font-family: var(--font-sans);
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: color-mix(in oklch, var(--primary) 20%, transparent);
+      color: var(--primary);
+      border: 1px solid color-mix(in oklch, var(--primary) 40%, transparent);
+      white-space: nowrap;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .dot-open { background: var(--warning); box-shadow: 0 0 8px var(--warning); }
+    .dot-clustered { background: var(--primary); box-shadow: 0 0 8px var(--primary); }
+
+    /* Scrollable Horizontal Filter Row */
+    .filter-scroll-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .filter-scroll-row::-webkit-scrollbar { display: none; }
+
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(12px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      padding: 16px;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal-box {
+      max-width: 720px;
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) * 1.5);
+      padding: 20px;
+      box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    pre {
+      background: var(--background);
+      padding: 12px;
+      border-radius: var(--radius);
+      font-family: var(--font-mono);
+      font-size: 0.78rem;
+      border: 1px solid var(--border);
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    /* -------------------------------------------------------------
+       CONTAINER QUERY RULES FOR REAL MOBILE & TABLET ADAPTATION
+       ------------------------------------------------------------- */
+    @container (max-width: 900px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+        padding: 14px;
+      }
+    }
+
+    @container (max-width: 600px) {
+      .app-header {
+        padding: 10px 14px;
+      }
+      .brand-title span {
+        font-size: 0.95rem;
+      }
+      .cluster-pill.header-pill {
+        display: none; /* Hide header tag on very small phone widths */
+      }
+      .header-actions {
+        width: 100%;
+        justify-content: space-between;
+        margin-top: 4px;
+      }
+      .header-actions .btn {
+        flex: 1;
+      }
+      .filter-toolbar {
+        flex-direction: column;
+        align-items: stretch !important;
+        gap: 10px !important;
+      }
+      .synthesize-btn {
+        width: 100%;
+      }
+      .card-header-row {
+        flex-direction: column;
+        align-items: flex-start !important;
+        gap: 6px !important;
+      }
+      .card-meta-row {
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .card-meta-row .file-path {
+        margin-left: 0 !important;
+        width: 100%;
+        margin-top: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="ts_stage">
+    <!-- Main Top Navigation -->
+    <header class="app-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="brand-title">
+          <div class="brand-icon">⚡</div>
+          <span>Mini Issue Tracker</span>
+        </div>
+        <span class="cluster-pill header-pill">AI Cluster Orchestrator</span>
+      </div>
+
+      <div class="header-actions">
+        <button class="btn btn-secondary" onclick="alert('New Issue Modal')">+ New Issue</button>
+        <button class="btn btn-primary" onclick="showClusterToast()">✨ Auto-Cluster (AI)</button>
+      </div>
+    </header>
+
+    <!-- Main Workspace Grid -->
+    <main class="main-grid">
+      <!-- Left Column: Issue Stream -->
+      <section style="display: flex; flex-direction: column; gap: 14px; min-width: 0;">
+        <!-- Filter Toolbar -->
+        <div class="filter-toolbar" style="display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+          <div class="filter-scroll-row">
+            <button class="btn btn-secondary" style="padding: 4px 10px; min-height: 32px; font-size: 0.78rem; border-color: var(--primary);">ALL (4)</button>
+            <button class="btn btn-secondary" style="padding: 4px 10px; min-height: 32px; font-size: 0.78rem;">#UI (2)</button>
+            <button class="btn btn-secondary" style="padding: 4px 10px; min-height: 32px; font-size: 0.78rem;">#AUTH (2)</button>
+          </div>
+          <button class="btn btn-primary synthesize-btn" style="padding: 6px 12px; font-size: 0.78rem;" onclick="openModal()">
+            ⚡ Synthesize Prompt (2)
+          </button>
+        </div>
+
+        <!-- Issue Card 1 -->
+        <div class="card card-active" style="display: flex; gap: 12px; align-items: flex-start;">
+          <input type="checkbox" checked style="margin-top: 4px; accent-color: var(--primary); width: 16px; height: 16px; flex-shrink: 0; cursor: pointer;">
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+            <div class="card-header-row" style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span class="status-dot dot-clustered"></span>
+                <span class="tag-badge">ISSUE-101</span>
+                <h3 style="font-size: 0.95rem; font-weight: 700; word-break: break-word;">Navbar dropdown flickers on fast hover</h3>
+              </div>
+              <span class="tag-badge" style="color: var(--warning); align-self: flex-start;">Medium</span>
+            </div>
+            <p style="color: var(--muted-foreground); font-size: 0.84rem; line-height: 1.45;">
+              When hovering over profile dropdown, the menu opens and closes rapidly due to mouseleave collision.
+            </p>
+            <div class="card-meta-row" style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
+              <span class="tag-badge">#ui</span>
+              <span class="tag-badge">#navbar</span>
+              <span class="file-path" style="margin-left: auto; font-size: 0.72rem; color: var(--muted-foreground); font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                src/components/layout/Navbar.tsx
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Issue Card 2 -->
+        <div class="card card-active" style="display: flex; gap: 12px; align-items: flex-start;">
+          <input type="checkbox" checked style="margin-top: 4px; accent-color: var(--primary); width: 16px; height: 16px; flex-shrink: 0; cursor: pointer;">
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+            <div class="card-header-row" style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span class="status-dot dot-clustered"></span>
+                <span class="tag-badge">ISSUE-102</span>
+                <h3 style="font-size: 0.95rem; font-weight: 700; word-break: break-word;">Theme toggle cuts off on mobile</h3>
+              </div>
+              <span class="tag-badge">Low</span>
+            </div>
+            <p style="color: var(--muted-foreground); font-size: 0.84rem; line-height: 1.45;">
+              On screens smaller than 375px, the dark/light toggle icon wraps below header and clips off-screen.
+            </p>
+            <div class="card-meta-row" style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
+              <span class="tag-badge">#ui</span>
+              <span class="tag-badge">#responsive</span>
+              <span class="file-path" style="margin-left: auto; font-size: 0.72rem; color: var(--muted-foreground); font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                src/styles/navbar.css
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Issue Card 3 -->
+        <div class="card" style="display: flex; gap: 12px; align-items: flex-start;">
+          <input type="checkbox" style="margin-top: 4px; accent-color: var(--primary); width: 16px; height: 16px; flex-shrink: 0; cursor: pointer;">
+          <div style="flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0;">
+            <div class="card-header-row" style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span class="status-dot dot-open"></span>
+                <span class="tag-badge">ISSUE-103</span>
+                <h3 style="font-size: 0.95rem; font-weight: 700; word-break: break-word;">Token expiry returns 500 error</h3>
+              </div>
+              <span class="tag-badge" style="color: var(--danger); font-weight: 700;">High</span>
+            </div>
+            <p style="color: var(--muted-foreground); font-size: 0.84rem; line-height: 1.45;">
+              When JWT expires, backend throws an unhandled NullReference causing 500 status rather than 401 redirect.
+            </p>
+            <div class="card-meta-row" style="display: flex; gap: 6px; align-items: center; margin-top: 4px;">
+              <span class="tag-badge">#auth</span>
+              <span class="tag-badge">#backend</span>
+              <span class="file-path" style="margin-left: auto; font-size: 0.72rem; color: var(--muted-foreground); font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                src/auth/tokenMiddleware.ts
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Column: Clustered Synergy Sidebar -->
+      <aside style="display: flex; flex-direction: column; gap: 14px; min-width: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 style="font-size: 1rem; font-weight: 800;">Semantic Clusters</h3>
+          <span class="tag-badge" style="background: var(--muted);">1 Group Ready</span>
+        </div>
+
+        <!-- Cluster Card -->
+        <div class="card" style="border-color: var(--primary); background: color-mix(in oklch, var(--card) 95%, var(--primary)); display: flex; flex-direction: column; gap: 10px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--primary); word-break: break-word;">Navbar Interaction Synergy</h4>
+            <span class="cluster-pill">2 issues</span>
+          </div>
+
+          <p style="font-size: 0.82rem; color: var(--muted-foreground);">
+            Both tickets share common root causes in TopNavbar hover bounding and mobile flex-wrap constraints.
+          </p>
+
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-size: 0.72rem; color: var(--muted-foreground); font-weight: 600;">Target Files:</span>
+            <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--foreground); display: flex; flex-direction: column; gap: 2px;">
+              <span>• src/components/layout/Navbar.tsx</span>
+              <span>• src/styles/navbar.css</span>
+            </div>
+          </div>
+
+          <button class="btn btn-secondary" style="width: 100%; margin-top: 4px; border-color: var(--primary); font-size: 0.82rem;" onclick="openModal()">
+            ⚡ View AI Prompt & PR Spec
+          </button>
+        </div>
+      </aside>
+    </main>
+
+    <!-- Synthesis Modal -->
+    <div id="promptModal" class="modal-overlay">
+      <div class="modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 800;">Navbar Interaction Synergy</h3>
+            <p style="font-size: 0.78rem; color: var(--muted-foreground);">AI Agent Prompt & PR Spec</p>
+          </div>
+          <button class="btn btn-secondary" style="padding: 4px 10px; min-height: 32px;" onclick="closeModal()">✕ Close</button>
+        </div>
+
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="font-size: 0.85rem;">Prompt for Gemini / Cursor / Copilot:</strong>
+            <button class="btn btn-primary" style="padding: 4px 10px; min-height: 32px; font-size: 0.78rem;" onclick="copyPrompt()">📋 Copy Prompt</button>
+          </div>
+          <pre id="promptText">### Task Context: Resolve Clustered Issues (Navbar Synergy)
+
+**Root Cause & Cluster Analysis:**
+Both issues share common interaction and CSS bounding defects in TopNavbar component.
+
+**Affected Components:**
+- `src/components/layout/Navbar.tsx`
+- `src/styles/navbar.css`
+
+**Associated Issues:**
+1. [MEDIUM] Navbar dropdown flickers on fast mouse hover (ISSUE-101)
+2. [LOW] Navbar theme toggle button cuts off on mobile screens (ISSUE-102)
+
+---
+
+### Implementation Requirements:
+1. Fix mouseleave boundary padding on profile dropdown menu.
+2. Add responsive flex-wrap rules for mobile screens (<375px).
+3. Add unit test for dropdown debounce.
+
+### Acceptance Criteria:
+- [ ] Dropdown stays open smoothly during transition.
+- [ ] Mobile viewport displays navbar cleanly without clipping.
+- [ ] Automated tests pass.</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== THEME STUDIO (dev-only; exactly per references/theme-studio.md) ===== -->
+  <style>
+    .ts-open{position:fixed;right:18px;bottom:18px;z-index:2147483640;border:none;border-radius:999px;padding:12px 18px;font:inherit;font-weight:700;font-size:13.5px;background:var(--primary);color:var(--primary-foreground);cursor:pointer;box-shadow:0 8px 24px oklch(0 0 0 / .35);font-family:var(--font-sans);display:flex;align-items:center;gap:8px;transition:transform 120ms ease;}
+    .ts-open:hover{transform:scale(1.04);}
+    .ts-open:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+    .ts{position:fixed;right:0;top:0;height:100%;width:330px;max-width:88vw;z-index:2147483646;background:var(--card);border-left:1px solid var(--border);box-shadow:-8px 0 30px oklch(0 0 0 / .3);transform:translateX(100%);transition:transform 160ms ease;overflow:auto;padding:20px;font-family:var(--font-sans);color:var(--foreground)}
+    body.ts-on .ts{transform:translateX(0)} body.ts-on .ts-scrim{position:fixed;inset:0;z-index:2147483645;background:oklch(0 0 0 / .4);backdrop-filter:blur(4px)}
+    .ts h3{font-size:17px;font-weight:800} .ts .close{position:absolute;right:14px;top:16px;border:none;background:var(--muted);color:var(--foreground);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;}
+    .ts .grp{margin-top:18px} .ts .glab{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-foreground);margin-bottom:8px}
+    .ts .sw{width:36px;height:36px;border-radius:10px;border:2px solid var(--border);cursor:pointer;transition:transform 100ms ease;} .ts .sw:hover{transform:scale(1.1);} .ts .swatches{display:flex;gap:8px;flex-wrap:wrap}
+    .ts .seg{display:flex;background:var(--muted);border-radius:10px;padding:3px;gap:3px} .ts .seg button{flex:1;border:none;background:transparent;color:var(--muted-foreground);font:inherit;font-weight:600;font-size:13px;padding:8px;border-radius:7px;cursor:pointer}
+    .ts .seg button.on{background:var(--card);color:var(--foreground);box-shadow:0 2px 6px rgba(0,0,0,0.2)} .ts .row{display:flex;align-items:center;gap:10px}
+    .ts input[type=color]{width:46px;height:34px;border:1px solid var(--border);border-radius:8px;background:none;cursor:pointer} .ts select,.ts input[type=range]{flex:1;font:inherit;font-size:13px;padding:7px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--foreground)}
+    .ts .aa{margin-top:8px;background:var(--muted);border-radius:10px;padding:12px;font-size:13px} .ts .aa .line{display:flex;justify-content:space-between;padding:4px 0} .ts .aa .v{font-family:monospace;font-weight:600}
+    .ts .pill{font-size:11px;font-weight:800;padding:2px 8px;border-radius:999px} .ts .ok{color:var(--success,oklch(.55 .14 150));background:oklch(.55 .14 150 / .16)} .ts .bad{color:oklch(.55 .2 27);background:oklch(.55 .2 27 / .16)}
+    .ts textarea{width:100%;height:110px;margin-top:8px;font-family:monospace;font-size:11px;border:1px solid var(--border);border-radius:8px;padding:10px;background:var(--background);color:var(--foreground)}
+    .ts .exp{width:100%;margin-top:8px;border:none;border-radius:8px;padding:10px;font:inherit;font-weight:700;font-size:13px;background:var(--primary);color:var(--primary-foreground);cursor:pointer}
+  </style>
+
+  <button class="ts-open" id="tsOpen">&#127912; Theme Studio</button>
+  <div class="ts-scrim" id="tsScrim"></div>
+  <aside class="ts" id="ts" aria-label="Theme studio">
+    <h3>Theme Studio</h3><button class="close" id="tsClose" aria-label="Close">&times;</button>
+    <div class="grp"><div class="glab">Starter looks</div><div class="swatches" id="presets"></div></div>
+    <div class="grp"><div class="glab">Accent</div><div class="row"><input type="color" id="ts_accent" value="#7c3aed" aria-label="Accent colour"><span style="font-size:12px;color:var(--muted-foreground)">Text auto-adjusts for contrast.</span></div></div>
+    <div class="grp"><div class="glab">Mode</div><div class="seg" id="ts_mode"><button data-m="dark" class="on">Dark</button><button data-m="light">Light</button><button data-m="system">System</button></div></div>
+    <div class="grp"><div class="glab">Preview width</div><div class="seg" id="ts_vw"><button data-w="375">Mobile</button><button data-w="768">Tablet</button><button data-w="0" class="on">Desktop</button></div></div>
+    <div class="grp"><div class="glab">Base text size</div><div class="seg" id="ts_size"><button data-s="14">14</button><button data-s="15" class="on">15</button><button data-s="16">16</button><button data-s="17">17</button><button data-s="18">18</button></div></div>
+    <div class="grp"><div class="glab">Font</div><div class="row"><select id="ts_font"><option value="'Plus Jakarta Sans', sans-serif">Plus Jakarta Sans</option><option value="'Space Grotesk', sans-serif">Space Grotesk</option><option value="'IBM Plex Sans', sans-serif">IBM Plex Sans</option><option value="'Inter', sans-serif">Inter</option></select></div></div>
+    <div class="grp"><div class="glab">Roundness</div><div class="row"><input type="range" id="ts_radius" min="0" max="1.4" step="0.05" value="0.6"></div></div>
+    <div class="grp"><div class="glab">Accessibility (live WCAG AA)</div><div class="aa"><div class="line"><span>Button text on accent</span><span><span class="v" id="ts_aaBtnV"></span> <span class="pill" id="ts_aaBtnP"></span></span></div><div class="line"><span>Body text on background</span><span><span class="v" id="ts_aaBodyV"></span> <span class="pill" id="ts_aaBodyP"></span></span></div></div></div>
+    <div class="grp"><div class="glab">Finalize &rarr; DESIGN.md tokens</div><button class="exp" id="ts_export">Export tokens (light + dark)</button><textarea id="ts_out" readonly placeholder="Click Export to capture finalized tokens -> paste into DESIGN.md section 2."></textarea></div>
+  </aside>
+
+  <script>
+  (function(){
+    var sl=function(c){c/=255;return c<=.04045?c/12.92:Math.pow((c+.055)/1.055,2.4)};
+    function lh(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(function(c){return c+c}).join('');return .2126*sl(parseInt(h.slice(0,2),16))+.7152*sl(parseInt(h.slice(2,4),16))+.0722*sl(parseInt(h.slice(4,6),16))}
+    function lo(L,C,H){var h=H*Math.PI/180,a=C*Math.cos(h),b=C*Math.sin(h),l=L+.3963377774*a+.2158037573*b,m=L-.1055613458*a-.0638541728*b,s=L-.0894841775*a-1.291485548*b;l=l*l*l;m=m*m*m;s=s*s*s;var R=4.0767416621*l-3.3077115913*m+.2309699292*s,G=-1.2684380046*l+2.6097574011*m-.3413193965*s,B=-.0041960863*l-.7034186147*m+1.707614701*s;R=Math.min(1,Math.max(0,R));G=Math.min(1,Math.max(0,G));B=Math.min(1,Math.max(0,B));return .2126*R+.7152*G+.0722*B}
+    function lum(v){v=(v||'').trim();var m=v.match(/oklch\(\s*([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)/i);if(m)return lo(+m[1],+m[2],+m[3]);m=v.match(/#([0-9a-fA-F]{3,6})/);if(m)return lh(m[0]);return null}
+    function ct(a,b){var x=lum(a),y=lum(b);if(x==null||y==null)return null;var hi=Math.max(x,y),lo2=Math.min(x,y);return (hi+.05)/(lo2+.05)}
+    var rs=document.documentElement.style, cs=function(){return getComputedStyle(document.documentElement)};
+    function setAccent(v){rs.setProperty('--primary',v);rs.setProperty('--accent',v);rs.setProperty('--ring',v);var L=lum(v),fg=(L!=null&&L>.45)?'oklch(0.14 0.02 260)':'oklch(0.99 0.005 265)';rs.setProperty('--primary-foreground',fg);rs.setProperty('--accent-foreground',fg);aa()}
+    function paint(id,r){document.getElementById(id+'V').textContent=r?r.toFixed(2)+':1':'-';var p=document.getElementById(id+'P'),ok=r&&r>=4.5;p.textContent=ok?'AA':(r&&r>=3?'large':'FAIL');p.className='pill '+(ok?'ok':'bad')}
+    function aa(){var c=cs();paint('ts_aaBtn',ct(c.getPropertyValue('--primary-foreground'),c.getPropertyValue('--primary')));paint('ts_aaBody',ct(c.getPropertyValue('--foreground'),c.getPropertyValue('--background')))}
+
+    var PRESETS=[
+      ['Electric Violet','oklch(0.65 0.22 270)'],
+      ['Cyber Cyan','oklch(0.72 0.18 215)'],
+      ['Emerald Neon','oklch(0.72 0.18 150)'],
+      ['Sunset Coral','oklch(0.66 0.22 30)'],
+      ['Amber Gold','oklch(0.78 0.18 80)'],
+      ['Rose Velvet','oklch(0.65 0.22 340)']
+    ];
+    var pc=document.getElementById('presets');PRESETS.forEach(function(p){var b=document.createElement('button');b.className='sw';b.title=p[0];b.style.background=p[1];b.onclick=function(){setAccent(p[1])};pc.appendChild(b)});
+    document.getElementById('ts_accent').addEventListener('input',function(e){setAccent(e.target.value)});
+    document.getElementById('ts_font').addEventListener('change',function(e){rs.setProperty('--font-sans',e.target.value)});
+    document.getElementById('ts_radius').addEventListener('input',function(e){rs.setProperty('--radius',e.target.value+'rem')});
+    function seg(id,fn){var el=document.getElementById(id);el.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[].forEach.call(el.children,function(x){x.classList.remove('on')});b.classList.add('on');fn(b)})}
+    seg('ts_mode',function(b){var el=document.documentElement,m=b.dataset.m;el.classList.remove('dark');el.classList.remove('light');if(m==='dark')el.classList.add('dark');else if(m==='light')el.classList.add('light');aa()});
+    seg('ts_vw',function(b){var st=document.getElementById('ts_stage');var w=+b.dataset.w;if(w){st.style.maxWidth=w+'px';st.style.margin='14px auto';st.style.border='1px solid var(--border)';st.style.borderRadius='20px';st.style.overflow='hidden';st.style.boxShadow='0 20px 40px rgba(0,0,0,0.5)'}else{st.style.maxWidth='';st.style.border='';st.style.borderRadius='';st.style.margin='';st.style.boxShadow=''}});
+    seg('ts_size',function(b){rs.setProperty('--font-size-base',b.dataset.s+'px')});
+    var body=document.body;document.getElementById('tsOpen').onclick=function(){body.classList.add('ts-on')};document.getElementById('tsClose').onclick=function(){body.classList.remove('ts-on')};document.getElementById('tsScrim').onclick=function(){body.classList.remove('ts-on')};
+    document.addEventListener('keydown',function(e){if(e.key==='Escape')body.classList.remove('ts-on')});
+    (function(){var el=document.documentElement,m=el.classList.contains('dark')?'dark':el.classList.contains('light')?'light':'system';var sg=document.getElementById('ts_mode');[].forEach.call(sg.children,function(b){b.classList.toggle('on',b.dataset.m===m)})})();
+    var KEYS=['--background','--foreground','--card','--card-foreground','--muted','--muted-foreground','--primary','--primary-foreground','--accent','--accent-foreground','--border','--ring','--radius','--font-size-base','--font-sans'];
+    document.getElementById('ts_export').onclick=function(){var el=document.documentElement,was=el.classList.contains('dark');function rd(){var c=cs();return KEYS.map(function(k){return '  '+k+': '+c.getPropertyValue(k).trim()+';'}).join('\n')}el.classList.remove('dark');var L=rd();el.classList.add('dark');var D=rd();if(!was)el.classList.remove('dark');document.getElementById('ts_out').value=':root {\n'+L+'\n}\n.dark {\n'+D+'\n}\n'};
+    aa();
+  })();
+
+  function openModal() { document.getElementById('promptModal').classList.add('active'); }
+  function closeModal() { document.getElementById('promptModal').classList.remove('active'); }
+  function copyPrompt() {
+    navigator.clipboard.writeText(document.getElementById('promptText').innerText);
+    alert('Prompt copied to clipboard!');
+  }
+  function showClusterToast() {
+    alert('AI Clustering complete: 2 related navbar issues clustered together!');
+  }
+  </script>
+  <!-- ===== /THEME STUDIO ===== -->
+</body>
+</html>
