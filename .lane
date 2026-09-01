@@ -1,0 +1,7 @@
+SEAT='JR1'
+ROLE='jr1'
+LANE='feat-02'
+AGENT_ID='agent-001'
+TASK='#2 clustering engine'
+ALLOW='src/components/features/ClusterCard.tsx src/domain/contracts.ts src/prompts/clusteringPrompt.ts src/providers/llm/llmProvider.ts src/services/clusterService.ts tests/unit/clustering.test.ts'
+DENY=''
