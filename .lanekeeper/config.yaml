@@ -1,0 +1,189 @@
+version: 1
+project:
+  name: mini-issue-tracker
+defaults:
+  max_agents: 4
+  worktree_dir: .lanekeeper/worktrees
+lanes:
+- name: prompt
+  allow:
+  - src/components/features/IssueCard.tsx
+  - src/components/features/NewIssueModal.tsx
+  - src/components/features/PromptModal.tsx
+  - src/domain/contracts.ts
+  - src/hooks/useKeyboardShortcuts.ts
+  - src/prompts/promptSynthesis.ts
+  - src/providers/storage/storageAdapter.ts
+  - src/services/exportService.ts
+  - src/services/issueService.ts
+  - tests/unit/contracts.test.ts
+  - tests/unit/exportProfiles.test.ts
+  - tests/unit/promptSynthesis.test.ts
+  deny: []
+- name: feat-02
+  allow:
+  - src/components/features/ClusterCard.tsx
+  - src/domain/contracts.ts
+  - src/prompts/clusteringPrompt.ts
+  - src/providers/llm/llmProvider.ts
+  - src/services/clusterService.ts
+  - tests/unit/clustering.test.ts
+  deny: []
+ports:
+  backend:
+    start: 8001
+    end: 8099
+  frontend:
+    start: 3001
+    end: 3099
+git:
+  protected_branches:
+  - main
+  - master
+  branch_prefix: parallel/
+quality:
+  commands: []
+capability_gates:
+  security_review:
+    paths:
+    - '**/auth/**'
+    - '**/authentication/**'
+    - '**/payments/**'
+    - '**/billing/**'
+    - '**/tenant/**'
+    - '**/tenants/**'
+    - secrets/**
+  database_migrations:
+    paths:
+    - database/migrations/**
+    - migrations/**
+database:
+  strategy: per-agent
+  name_template: app_${AGENT_ID}
+environment:
+  host: 127.0.0.1
+  url_templates:
+    API_URL: http://${HOST}:${BACKEND_PORT}
+    BACKEND_URL: http://${HOST}:${BACKEND_PORT}
+    FRONTEND_URL: http://${HOST}:${FRONTEND_PORT}
+editor:
+  command: code
+  args: []
+board:
+  title: Delivery board
+  owner: ''
+  read: false
+  command: gh
+intake:
+  tracker: github
+  github:
+    repo: ''
+    state: open
+    limit: 500
+    command: gh
+  spec_sources:
+  - PRODUCT.md
+  - docs/PRODUCT.md
+  - README.md
+  playbook:
+    command: claude
+    steps:
+    - /vision
+    - /scope
+    - /plan
+    auto: true
+  spec_sections:
+  - Scope
+  - Plan
+  - Features
+  thresholds:
+    thin_issue_count: 3
+    feature_match_score: 0.5
+    duplicate_title_score: 0.85
+    broad_ticket_areas: 5
+    tidy_flag_ratio: 0.5
+    duplicate_report_limit: 10
+divide:
+  advisor: none
+  advisor_command: claude
+  draft_path: start/lanes.draft.yaml
+  lane_file: lanes.yaml
+  path_headings:
+  - allowed file paths
+  - target modules
+  - target files
+  lane_headings:
+  - lane
+  containers:
+  - src
+  - app
+  - apps
+  - packages
+  - modules
+  - lib
+  - libs
+  - cmd
+  - internal
+  - backend
+  - frontend
+  - web
+  - client
+  - server
+  - api
+  - services
+  - service
+  - tests
+  - test
+  - spec
+  - docs
+  - scripts
+  - infra
+  - infrastructure
+  - deploy
+  generic_dirs:
+  - components
+  - component
+  - pages
+  - page
+  - views
+  - routes
+  - hooks
+  - utils
+  - util
+  - helpers
+  - schemas
+  - schema
+  - models
+  - model
+  - db
+  - database
+  - migrations
+  - static
+  - assets
+  - styles
+  - types
+  - config
+  - common
+  - shared
+  - core
+  - domains
+  - features
+  - providers
+  - adapters
+  - handlers
+  - controllers
+  - middleware
+  - public
+  - templates
+  feature_containers:
+  - domains
+  - features
+  - modules
+  - packages
+  - apps
+  thresholds:
+    min_group_tickets: 2
+    min_slice_files: 2
+    min_slice_roots: 2
+    overlap_report_limit: 20
+    unclaimed_examples: 5
