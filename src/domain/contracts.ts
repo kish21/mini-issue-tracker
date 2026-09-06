@@ -83,3 +83,116 @@ export function validateIssue(issue: Partial<IssueContract>): IssueContract {
     updatedAt: new Date().toISOString(),
   };
 }
+
+/* ------------------------------------------------------------------ *
+ * FEAT-02: Semantic Clustering contracts
+ * ------------------------------------------------------------------ */
+
+/**
+ * Minimal issue shape the clustering pipeline needs.
+ * Deliberately narrower than IssueContract so providers never see
+ * tenant keys, status or timestamps they have no business reading.
+ */
+export type ClusterableIssue = Pick<IssueContract, 'id' | 'title' | 'description' | 'tags'>;
+
+/** Where a set of clusters actually came from. */
+export type ClusteringSource = 'llm' | 'heuristic' | 'none';
+
+/** Audit-friendly result of one clustering run. Never throws past the service. */
+export interface ClusteringOutcome {
+  clusters: IssueClusterContract[];
+  unclusteredIssueIds: string[];
+  source: ClusteringSource;
+  degraded: boolean;                  // true when the primary provider failed
+  degradedReason?: string;            // machine-ish reason code + message
+  startedAt: string;                  // ISO-8601 UTC
+  completedAt: string;                // ISO-8601 UTC
+  durationMs: number;
+}
+
+/** A group of fewer than this many issues is not a cluster. */
+export const MIN_CLUSTER_SIZE = 2;
+
+/** Upper bound on any single free-text field copied out of an LLM response. */
+export const MAX_LLM_TEXT_CHARS = 2000;
+
+/** Bounds on how much structure a single response may claim (memory + render cost). */
+export const MAX_CLUSTERS_PER_RESPONSE = 25;
+export const MAX_COMPONENTS_PER_CLUSTER = 20;
+
+const DEFAULT_CONFIDENCE = 0.5;
+
+function coerceText(value: unknown, fallback: string): string {
+  if (typeof value !== 'string') return fallback;
+  const trimmed = value.trim();
+  if (!trimmed) return fallback;
+  return trimmed.length > MAX_LLM_TEXT_CHARS ? `${trimmed.slice(0, MAX_LLM_TEXT_CHARS)}…` : trimmed;
+}
+
+function coerceStringArray(value: unknown, maxEntries = Number.MAX_SAFE_INTEGER): string[] {
+  if (!Array.isArray(value)) return [];
+  const cleaned = value
+    .filter((entry): entry is string => typeof entry === 'string')
+    .map((entry) => coerceText(entry, ''))
+    .filter(Boolean);
+  return [...new Set(cleaned)].slice(0, maxEntries);
+}
+
+function clampConfidence(value: unknown): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return DEFAULT_CONFIDENCE;
+  return Math.min(1, Math.max(0, value));
+}
+
+/**
+ * Validate and sanitize an untrusted LLM clustering payload.
+ *
+ * The model is treated as hostile-by-default: unknown/hallucinated issue IDs are
+ * dropped, an ID may only appear in one cluster, undersized clusters are discarded,
+ * confidence is clamped to the agreed 0..1 scale, and `unclusteredIssueIds` is
+ * recomputed from `knownIssueIds` rather than trusted.
+ *
+ * @throws Error when the payload is structurally unusable (caller maps this to a fallback).
+ */
+export function parseLLMClusterResponse(
+  raw: unknown,
+  knownIssueIds: readonly string[],
+): LLMClusterResponseSchema {
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) {
+    throw new Error('LLM response validation failed: payload is not a JSON object.');
+  }
+
+  const rawClusters = (raw as { clusters?: unknown }).clusters;
+  if (!Array.isArray(rawClusters)) {
+    throw new Error('LLM response validation failed: "clusters" must be an array.');
+  }
+
+  const known = new Set(knownIssueIds);
+  const alreadyClustered = new Set<string>();
+  const clusters: LLMClusterResponseSchema['clusters'] = [];
+
+  for (const entry of rawClusters) {
+    if (clusters.length >= MAX_CLUSTERS_PER_RESPONSE) break;
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) continue;
+    const candidate = entry as Record<string, unknown>;
+
+    const issueIds = coerceStringArray(candidate.issueIds).filter(
+      (id) => known.has(id) && !alreadyClustered.has(id),
+    );
+    if (issueIds.length < MIN_CLUSTER_SIZE) continue;
+    issueIds.forEach((id) => alreadyClustered.add(id));
+
+    clusters.push({
+      name: coerceText(candidate.name, 'Untitled cluster'),
+      reasoning: coerceText(candidate.reasoning, 'No reasoning supplied by the model.'),
+      suggestedAction: coerceText(candidate.suggestedAction, 'Resolve related issues together.'),
+      affectedComponents: coerceStringArray(candidate.affectedComponents, MAX_COMPONENTS_PER_CLUSTER),
+      issueIds,
+      confidenceScore_0_1: clampConfidence(candidate.confidenceScore_0_1),
+    });
+  }
+
+  return {
+    clusters,
+    unclusteredIssueIds: knownIssueIds.filter((id) => !alreadyClustered.has(id)),
+  };
+}
