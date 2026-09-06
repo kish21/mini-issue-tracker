@@ -42,4 +42,3 @@ npm test
 - [STRUCTURE.md](file:///c:/Users/kishore/Downloads/mini-issue-tracker/STRUCTURE.md) — Codebase Organization Map
 - [DESIGN.md](file:///c:/Users/kishore/Downloads/mini-issue-tracker/DESIGN.md) — Design System Specification & Token Harness
 - [design-preview.html](file:///c:/Users/kishore/Downloads/mini-issue-tracker/design-preview.html) — Interactive Theme Studio & Preview
-// stray
