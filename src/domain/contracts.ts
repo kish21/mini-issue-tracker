@@ -83,3 +83,4 @@ export function validateIssue(issue: Partial<IssueContract>): IssueContract {
     updatedAt: new Date().toISOString(),
   };
 }
+// FEAT-02: clustering contract (test edit)
