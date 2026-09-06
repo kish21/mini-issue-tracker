@@ -83,3 +83,129 @@ export function validateIssue(issue: Partial<IssueContract>): IssueContract {
     updatedAt: new Date().toISOString(),
   };
 }
+
+/**
+ * ---------------------------------------------------------------------------
+ * FEAT-03 — Status Lifecycle State Machine
+ * ---------------------------------------------------------------------------
+ * The allowed-transition table is the single source of truth for issue status
+ * movement. Services (IssueService/UI) must route every status change through
+ * `transitionIssueStatus` so that illegal moves fail closed and `updatedAt` is
+ * always stamped consistently.
+ */
+export const ALLOWED_STATUS_TRANSITIONS: Readonly<Record<IssueStatus, readonly IssueStatus[]>> = {
+  open: ['clustered', 'resolved'],
+  clustered: ['resolved', 'open'],
+  resolved: ['open'],
+} as const;
+
+export interface StatusTransitionResult {
+  ok: boolean;
+  issue: IssueContract;
+  reason?: string;
+}
+
+export function canTransitionStatus(from: IssueStatus, to: IssueStatus): boolean {
+  if (from === to) return false;
+  // Fail closed on statuses outside the enum (e.g. legacy data read from storage).
+  const allowed = ALLOWED_STATUS_TRANSITIONS[from];
+  if (!allowed) return false;
+  return allowed.includes(to);
+}
+
+/**
+ * Pure transition. Never mutates the input; returns the original issue
+ * untouched (ok: false) when the move is not permitted.
+ */
+export function transitionIssueStatus(
+  issue: IssueContract,
+  to: IssueStatus,
+  now: string = new Date().toISOString(),
+  clusterId?: string
+): StatusTransitionResult {
+  if (!canTransitionStatus(issue.status, to)) {
+    return {
+      ok: false,
+      issue,
+      reason: `Illegal status transition: '${issue.status}' -> '${to}'.`,
+    };
+  }
+
+  if (to === 'clustered' && !clusterId && !issue.clusterId) {
+    return {
+      ok: false,
+      issue,
+      reason: `Cannot move '${issue.id}' to 'clustered' without a clusterId linkage.`,
+    };
+  }
+
+  const next: IssueContract = { ...issue, status: to, updatedAt: now };
+
+  // Entering a grouped state records the linkage; leaving it releases the linkage.
+  if (to === 'clustered' && clusterId) next.clusterId = clusterId;
+  if (to === 'open') delete next.clusterId;
+
+  return { ok: true, issue: next };
+}
+
+export interface BatchTransitionResult {
+  issues: IssueContract[];
+  transitionedIds: string[];
+  skipped: Array<{ id: string; reason: string }>;
+}
+
+/**
+ * Batch-move every issue belonging to a cluster into a target status
+ * (the triage loop's "mark cluster resolved" action). Issues outside the
+ * cluster are returned untouched; illegal moves are skipped, not thrown.
+ */
+export function batchTransitionClusterIssues(
+  issues: IssueContract[],
+  clusterId: string,
+  to: IssueStatus,
+  now: string = new Date().toISOString()
+): BatchTransitionResult {
+  const transitionedIds: string[] = [];
+  const skipped: Array<{ id: string; reason: string }> = [];
+
+  const next = issues.map((issue) => {
+    if (issue.clusterId !== clusterId) return issue;
+
+    const result = transitionIssueStatus(issue, to, now);
+    if (result.ok) {
+      transitionedIds.push(issue.id);
+    } else {
+      skipped.push({ id: issue.id, reason: result.reason ?? 'Unknown transition failure.' });
+    }
+    return result.issue;
+  });
+
+  return { issues: next, transitionedIds, skipped };
+}
+
+/**
+ * ---------------------------------------------------------------------------
+ * FEAT-03 — Export Profile Contracts
+ * ---------------------------------------------------------------------------
+ */
+export type ExportFormatId = 'agent_prompt' | 'pr_description' | 'summary';
+
+export interface ExportProfileContract {
+  id: ExportFormatId;
+  label: string;                      // Tab label shown in the export modal
+  description: string;                // One-line "what this is for"
+  fileExtension: string;              // Suggested extension on download (e.g. '.md')
+}
+
+export interface ExportRenderResult {
+  formatId: ExportFormatId;
+  content: string;
+  generatedAt: string;                // ISO-8601 UTC timestamp
+}
+
+export interface ClipboardWriteResult {
+  ok: boolean;
+  formatId: ExportFormatId;
+  bytesWritten: number;               // Length only — content is never logged
+  error?: string;
+}

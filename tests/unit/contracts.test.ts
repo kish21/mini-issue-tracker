@@ -1,8 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { 
   validateIssue, 
-  CURRENT_SCHEMA_VERSION, 
-  IssueContract, 
+  CURRENT_SCHEMA_VERSION, 
   StorageDatabaseSchema 
 } from '../../src/domain/contracts.ts';
 

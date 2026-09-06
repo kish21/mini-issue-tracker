@@ -52,3 +52,37 @@ ${cluster.affectedComponents.map((c) => `- Updated \`${c}\``).join('\n')}
 - Verify reproduction cases reported in linked issues.
 `;
 }
+
+/**
+ * Format C — Plain-text triage summary.
+ * Human-readable digest for standups, tickets and chat; no markdown headings
+ * so it survives being pasted into plain-text fields.
+ */
+export function generateSummaryForCluster(cluster: IssueCluster, issues: Issue[]): string {
+  const priorityRank: Record<Issue['priority'], number> = {
+    critical: 0,
+    high: 1,
+    medium: 2,
+    low: 3,
+  };
+
+  const ordered = [...issues].sort((a, b) => priorityRank[a.priority] - priorityRank[b.priority]);
+  // No issues means no priority to report - never fabricate a default.
+  const highest = ordered.length > 0 ? ordered[0].priority.toUpperCase() : 'n/a';
+
+  return `Cluster: ${cluster.name}
+Issues: ${issues.length} | Highest priority: ${highest}
+
+Root cause:
+${cluster.reasoning}
+
+Suggested action:
+${cluster.suggestedAction}
+
+Issues in this cluster:
+${ordered.map((i) => `- [${i.priority.toUpperCase()}] ${i.id}: ${i.title}`).join('\n')}
+
+Affected components:
+${cluster.affectedComponents.map((c) => `- ${c}`).join('\n')}
+`;
+}
