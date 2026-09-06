@@ -1,0 +1,14 @@
+{
+  "seat": "SR2",
+  "vendor_harness": "",
+  "capabilities": {
+    "file_level_code_generation": "native",
+    "unit_test_generation": "native",
+    "local_test_execution": "native",
+    "deep_code_review": "native",
+    "security_review": "native",
+    "database_migrations": "native"
+  },
+  "max_allowed_lane_scope": [],
+  "forbidden_paths": []
+}

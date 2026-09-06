@@ -37,3 +37,13 @@ lerna-debug.log*
 # OS metadata
 .DS_Store
 Thumbs.db
+
+# --- lanekeeper (managed) ---
+# Runtime state, logs and agent worktrees are machine-local and must never be committed.
+# Without these rules an agent running `git add -A` would sweep every other agent's
+# worktree into its own commit.
+/.lanekeeper/*
+# The lane policy and the seat cards are the team's shared contract - keep them tracked.
+!/.lanekeeper/config.yaml
+!/.lanekeeper/capabilities/
+# --- end lanekeeper ---

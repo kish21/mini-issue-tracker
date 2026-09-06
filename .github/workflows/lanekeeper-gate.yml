@@ -1,0 +1,38 @@
+name: Lane gate
+
+# Runs the lanekeeper boundary check on every pull request. The change must carry
+# exactly one `lane: <name>` label naming the lane it belongs to; the check then
+# fails if any changed file is outside that lane. Written by `lanekeeper check
+# --write-workflow`; edit freely, it is not regenerated.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, labeled, unlabeled]
+
+concurrency:
+  group: lane-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  lane:
+    name: Change stays inside its lane
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The whole history, so the merge base with the target branch exists.
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install lanekeeper
+        run: python -m pip install --upgrade pip lanekeeper
+
+      - name: Check the change against its lane
+        env:
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+          BASE: origin/${{ github.base_ref }}
+        run: |
+          lanekeeper check --labels-json "$LABELS" --label-prefix "lane:" --base "$BASE"
